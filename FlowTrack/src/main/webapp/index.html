@@ -1,0 +1,2279 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>FlowTrack</title>
+<style>
+:root {
+  --bg: #fbf7f5;
+  --surface: #ffffff;
+  --card-bg: #f8f4f2;
+  --text: #2d2d2d;
+  --text-muted: #888;
+  --text-light: #999;
+  --border: #e5e0dd;
+  --accent: #d4a8a0;
+  --accent-deep: #c4958c;
+  --shadow: rgba(0,0,0,0.06);
+  --pill-bg: #f0ebe8;
+  --pill-text: #666;
+  --input-bg: #faf8f7;
+  --divider: #f0ebe8;
+  --sidebar-bg: #ffffff;
+  --body-bg: linear-gradient(135deg, #fbf7f5 0%, #f5ece8 100%);
+}
+
+body[data-theme="dark"] {
+  --bg: #1a1614;
+  --surface: #24201e;
+  --card-bg: #2d2825;
+  --text: #f0ebe8;
+  --text-muted: #b0a8a2;
+  --text-light: #8a8078;
+  --border: #3d3835;
+  --accent: #c4958c;
+  --accent-deep: #d4a8a0;
+  --shadow: rgba(0,0,0,0.3);
+  --pill-bg: #3d3835;
+  --pill-text: #b0a8a2;
+  --input-bg: #2d2825;
+  --divider: #3d3835;
+  --sidebar-bg: #24201e;
+  --body-bg: linear-gradient(135deg, #1a1614 0%, #221d1b 100%);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  height: 100%;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: var(--body-bg);
+  background-attachment: fixed;
+  color: var(--text);
+  min-height: 100vh;
+  transition: background 0.3s, color 0.3s;
+  -webkit-font-smoothing: antialiased;
+}
+
+#root {
+  width: 100%;
+  min-height: 100vh;
+  padding: 16px;
+}
+
+.app-root {
+  display: grid;
+  gap: 16px;
+  max-width: 1180px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.main-column {
+  background: var(--surface);
+  border-radius: 24px;
+  box-shadow: 0 4px 20px var(--shadow);
+  padding: 20px 18px 30px;
+  min-width: 0;
+  transition: background 0.3s;
+}
+
+.sidebar {
+  display: none;
+}
+
+.mobile-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 18px;
+}
+.mobile-header h1 {
+  font-size: 22px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.mobile-header .mobile-user {
+  background: var(--pill-bg);
+  padding: 4px 14px;
+  border-radius: 20px;
+  font-size: 12px;
+  color: var(--pill-text);
+  cursor: pointer;
+  max-width: 160px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mobile-nav {
+  display: flex;
+  gap: 4px;
+  overflow-x: auto;
+  padding-bottom: 12px;
+  margin-bottom: 4px;
+  scrollbar-width: none;
+}
+.mobile-nav::-webkit-scrollbar { display: none; }
+.mobile-nav button {
+  padding: 8px 16px;
+  border: none;
+  background: transparent;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-light);
+  cursor: pointer;
+  border-radius: 20px;
+  white-space: nowrap;
+  transition: all 0.15s;
+  font-family: inherit;
+}
+.mobile-nav button.active {
+  background: #f5e0d8;
+  color: #4a3a3a;
+  font-weight: 600;
+}
+body[data-theme="dark"] .mobile-nav button.active {
+  background: #4a3a3a;
+  color: #f5e0d8;
+}
+
+@media (min-width: 900px) {
+  #root {
+    padding: 32px 24px;
+  }
+
+  .app-root {
+    grid-template-columns: 240px 1fr;
+    gap: 28px;
+    align-items: start;
+  }
+
+  .main-column {
+    padding: 32px 36px 40px;
+    min-height: calc(100vh - 64px);
+  }
+
+  .mobile-header,
+  .mobile-nav {
+    display: none;
+  }
+
+  .sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    background: var(--sidebar-bg);
+    border-radius: 24px;
+    box-shadow: 0 4px 20px var(--shadow);
+    padding: 26px 20px;
+    position: sticky;
+    top: 32px;
+    transition: background 0.3s;
+  }
+
+  .sidebar-logo h1 {
+    font-size: 22px;
+    font-weight: 600;
+    line-height: 1.2;
+  }
+  .sidebar-logo p {
+    font-size: 12px;
+    color: var(--text-light);
+    margin-top: 4px;
+    line-height: 1.4;
+  }
+
+  .sidebar-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .sidebar-nav button {
+    padding: 12px 16px;
+    border: none;
+    background: transparent;
+    text-align: left;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-light);
+    cursor: pointer;
+    border-radius: 12px;
+    transition: all 0.15s;
+    font-family: inherit;
+  }
+  .sidebar-nav button:hover {
+    background: var(--card-bg);
+    color: var(--text);
+  }
+  .sidebar-nav button.active {
+    background: #f5e0d8;
+    color: #4a3a3a;
+    font-weight: 600;
+  }
+  body[data-theme="dark"] .sidebar-nav button.active {
+    background: #4a3a3a;
+    color: #f5e0d8;
+  }
+
+  .sidebar-footer {
+    margin-top: auto;
+    padding-top: 16px;
+    border-top: 1px solid var(--divider);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .sidebar-footer .user-name {
+    font-size: 12px;
+    color: var(--text-light);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    padding: 0 4px;
+  }
+  .sidebar-footer .logout-btn {
+    padding: 10px 14px;
+    border: 1.5px solid var(--border);
+    background: transparent;
+    color: var(--text);
+    border-radius: 12px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s;
+    font-family: inherit;
+  }
+  .sidebar-footer .logout-btn:hover {
+    background: var(--card-bg);
+  }
+}
+
+@media (min-width: 1200px) {
+  .app-root {
+    max-width: 1280px;
+    grid-template-columns: 260px 1fr;
+    gap: 36px;
+  }
+  .main-column {
+    padding: 40px 48px 48px;
+  }
+}
+
+h2 { font-size: 20px; font-weight: 600; margin-bottom: 6px; }
+.sub { color: var(--text-muted); font-size: 14px; margin-bottom: 16px; }
+.card { background: var(--card-bg); border-radius: 14px; padding: 16px;
+  margin-bottom: 12px; border-left: 4px solid var(--accent); }
+.card .value { font-size: 18px; font-weight: 600; margin: 4px 0; }
+.btn { padding: 10px 20px; border: none; border-radius: 24px; background: var(--accent);
+  color: white; font-weight: 600; cursor: pointer; font-size: 14px; font-family: inherit; }
+.btn-outline { background: transparent; border: 1.5px solid var(--border); color: var(--text); }
+.btn-block { width: 100%; }
+.input-group { margin-bottom: 14px; }
+.input-group label { display: block; font-weight: 500; font-size: 14px; margin-bottom: 4px; }
+.input-group input, .input-group select { width: 100%; padding: 10px 14px;
+  border: 1.5px solid var(--border); border-radius: 10px; font-size: 14px;
+  background: var(--input-bg); color: var(--text); font-family: inherit; }
+.radio-group { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+.radio-group label { display: flex; align-items: center; gap: 4px; font-size: 14px;
+  background: var(--card-bg); padding: 6px 14px; border-radius: 20px; cursor: pointer;
+  border: 1.5px solid transparent; }
+.radio-group label.selected { background: #f5e0d8; border-color: var(--accent); }
+body[data-theme="dark"] .radio-group label.selected { background: #4a3a3a; color: #f5e0d8; }
+.calendar-nav { display: flex; justify-content: space-between; align-items: center;
+  margin: 12px 0; }
+.calendar-nav button { background: none; border: none; font-size: 22px;
+  cursor: pointer; padding: 0 12px; color: var(--text); }
+.calendar-nav .month-label { font-weight: 600; font-size: 16px; }
+.calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+.calendar-grid .day-label { font-size: 11px; font-weight: 600; color: var(--text-light);
+  text-align: center; padding: 4px 0; }
+.calendar-grid .day-cell { aspect-ratio: 1/1; border-radius: 10px;
+  display: flex; align-items: center; justify-content: center; font-size: 14px;
+  font-weight: 500; background: var(--card-bg); cursor: pointer;
+  color: var(--text); border: 1.5px solid transparent; }
+.calendar-grid .day-cell.other { color: var(--text-light); background: transparent; cursor: default; }
+.calendar-grid .day-cell.actual-start { background: #b73b3b; color: white; font-weight: 700; }
+.calendar-grid .day-cell.actual { background: #f5a0a0; color: #5a1a1a; font-weight: 500; }
+.calendar-grid .day-cell.predicted-start {
+  background: #f5c4c4; color: #8a2a2a; font-weight: 700;
+  border: 2px dashed #b73b3b; }
+.calendar-grid .day-cell.predicted {
+  background: #fce0e0; color: #8a2a2a;
+  border: 1.5px dashed #e09595; }
+.calendar-grid .day-cell.follicular { background: #d9f0d9; color: #2e6e2e; }
+.calendar-grid .day-cell.ovulation { background: #7ec8c8; color: #144a4a; font-weight: 600; }
+.calendar-grid .day-cell.luteal { background: #ecdcf0; color: #5a3a6a; }
+.calendar-grid .day-cell.today { box-shadow: 0 0 0 3px var(--accent); }
+
+@media (min-width: 900px) {
+  .calendar-grid {
+    max-width: 520px;
+    margin: 0 auto;
+  }
+  .calendar-nav {
+    max-width: 520px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .legend {
+    max-width: 520px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+}
+
+.legend { display: flex; flex-wrap: wrap; gap: 10px 16px; justify-content: center;
+  font-size: 11px; color: var(--text-muted); margin-top: 12px; }
+.legend span { display: flex; align-items: center; gap: 4px; }
+.legend .swatch { width: 14px; height: 14px; border-radius: 4px; }
+.legend .swatch.actual { background: #f5a0a0; }
+.legend .swatch.actual-start { background: #b73b3b; }
+.legend .swatch.predicted { background: #fce0e0; border: 1.5px dashed #b73b3b; }
+.legend .swatch.follicular { background: #d9f0d9; }
+.legend .swatch.ovulation { background: #7ec8c8; }
+.legend .swatch.luteal { background: #ecdcf0; }
+
+.phase-panel { border-radius: 16px; padding: 18px; margin-top: 16px;
+  border: 1.5px solid transparent; line-height: 1.55; }
+.phase-panel.menstrual { background: #fdeaea; border-color: #f5a0a0; }
+.phase-panel.follicular { background: #eaf7ea; border-color: #b9e0b9; }
+.phase-panel.ovulation { background: #e6f5f5; border-color: #7ec8c8; }
+.phase-panel.luteal { background: #f4ecf8; border-color: #d4bce0; }
+.phase-panel.unknown { background: var(--card-bg); border-color: var(--border); }
+body[data-theme="dark"] .phase-panel.menstrual { background: #3a2222; border-color: #6a3232; }
+body[data-theme="dark"] .phase-panel.follicular { background: #223a22; border-color: #326a32; }
+body[data-theme="dark"] .phase-panel.ovulation { background: #1f3535; border-color: #2e5f5f; }
+body[data-theme="dark"] .phase-panel.luteal { background: #2e223a; border-color: #4e3266; }
+.phase-panel .pp-header { display: flex; align-items: center;
+  justify-content: space-between; margin-bottom: 10px; }
+.phase-panel .pp-phase { font-size: 17px; font-weight: 700; }
+.phase-panel.menstrual .pp-phase { color: #7a2626; }
+.phase-panel.follicular .pp-phase { color: #2e6e2e; }
+.phase-panel.ovulation .pp-phase { color: #144a4a; }
+.phase-panel.luteal .pp-phase { color: #5a3a6a; }
+body[data-theme="dark"] .phase-panel.menstrual .pp-phase { color: #f5a0a0; }
+body[data-theme="dark"] .phase-panel.follicular .pp-phase { color: #b9e0b9; }
+body[data-theme="dark"] .phase-panel.ovulation .pp-phase { color: #7ec8c8; }
+body[data-theme="dark"] .phase-panel.luteal .pp-phase { color: #d4bce0; }
+.phase-panel .pp-day { font-size: 12px; background: rgba(255,255,255,0.7);
+  padding: 3px 10px; border-radius: 20px; color: #666; font-weight: 500; }
+body[data-theme="dark"] .phase-panel .pp-day { background: rgba(0,0,0,0.3); color: #ddd; }
+.phase-panel .pp-section { margin-top: 12px; font-size: 13px; }
+.phase-panel .pp-section-title { font-weight: 600; font-size: 12px;
+  text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-muted);
+  margin-bottom: 6px; }
+.phase-panel ul { list-style: none; padding: 0; margin: 0; }
+.phase-panel li { padding: 5px 0 5px 20px; position: relative;
+  color: var(--text); font-size: 13px; }
+.phase-panel li::before { content: '•'; position: absolute; left: 6px;
+  color: var(--text-light); font-weight: bold; }
+.phase-panel .pp-note { margin-top: 12px; font-size: 11px; color: var(--text-light);
+  font-style: italic; line-height: 1.4; }
+.phase-panel .pp-body { font-size: 13px; color: var(--text); margin-top: 8px; }
+
+.login-tabs { display: flex; gap: 8px; margin-bottom: 20px; }
+.login-tabs button { flex: 1; padding: 10px; border: none; background: var(--card-bg);
+  border-radius: 10px; font-size: 14px; font-weight: 500;
+  color: var(--text-muted); cursor: pointer; font-family: inherit; }
+.login-tabs button.active { background: #f5e0d8; color: #4a3a3a; font-weight: 600; }
+body[data-theme="dark"] .login-tabs button.active { background: #4a3a3a; color: #f5e0d8; }
+.auth-header { text-align: center; margin: 20px 0 24px; }
+.auth-header h1 { font-size: 28px; font-weight: 600; }
+.auth-header h1 span { font-weight: 300; color: #b0a0a0; }
+.auth-header p { color: var(--text-light); font-size: 14px; margin-top: 6px; }
+.error-box { background: #fff0f0; color: #a00; padding: 14px; border-radius: 10px;
+  font-size: 13px; margin-bottom: 12px; border: 1px solid #ffcdd2;
+  font-family: monospace; word-break: break-all; }
+
+@media (min-width: 900px) {
+  .auth-shell {
+    max-width: 460px;
+    margin: 40px auto;
+    background: var(--surface);
+    border-radius: 24px;
+    box-shadow: 0 4px 20px var(--shadow);
+    padding: 32px 32px 40px;
+  }
+}
+
+.emotion-picker { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; }
+.emotion-picker button { padding: 10px 18px; border-radius: 24px;
+  border: 1.5px solid var(--border); background: var(--surface);
+  color: var(--text); font-size: 14px; cursor: pointer; transition: all 0.15s;
+  font-family: inherit; }
+.emotion-picker button:hover { background: var(--card-bg); }
+.emotion-picker button.selected { background: var(--accent); border-color: var(--accent);
+  color: white; font-weight: 600; }
+.emotion-history { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; margin-top: 12px; }
+.emotion-history .e-day { aspect-ratio: 1/1; border-radius: 10px; display: flex;
+  align-items: center; justify-content: center; font-size: 20px;
+  background: var(--card-bg); position: relative; cursor: pointer;
+  border: 2px solid transparent; transition: all 0.15s; }
+.emotion-history .e-day:hover { border-color: var(--accent); }
+.emotion-history .e-day.has-emotion { background: #f5e0d8; }
+body[data-theme="dark"] .emotion-history .e-day.has-emotion { background: #4a3a3a; }
+.emotion-history .e-day.selected { border-color: var(--accent);
+  box-shadow: 0 0 0 2px rgba(212, 168, 160, 0.3); }
+.emotion-history .e-day .e-num { position: absolute; top: 2px; right: 4px;
+  font-size: 9px; color: var(--text-light); font-weight: 600; }
+.emotion-history .e-day.today { box-shadow: 0 0 0 2px var(--accent); }
+
+@media (min-width: 900px) {
+  .emotion-picker,
+  .emotion-history {
+    max-width: 520px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+}
+
+.period-row { display: flex; justify-content: space-between;
+  align-items: center; padding: 8px 12px; background: var(--card-bg);
+  border-radius: 10px; margin-bottom: 6px; font-size: 14px; }
+.period-row button { background: none; border: none; color: #cc8888;
+  cursor: pointer; font-size: 16px; }
+
+.editing-banner { background: #fff3cd; border: 1px solid #ffd966;
+  border-radius: 10px; padding: 10px 14px; font-size: 13px; color: #7a5a00;
+  margin-bottom: 8px; display: flex; justify-content: space-between;
+  align-items: center; }
+body[data-theme="dark"] .editing-banner { background: #3d3418; border-color: #6a5a2a;
+  color: #e0c878; }
+.editing-banner button { background: none; border: none; color: #7a5a00;
+  cursor: pointer; font-size: 13px; font-weight: 600; text-decoration: underline;
+  font-family: inherit; }
+body[data-theme="dark"] .editing-banner button { color: #e0c878; }
+
+.mood-insights { background: var(--card-bg); border-radius: 14px; padding: 16px;
+  margin-top: 16px; border-left: 4px solid var(--accent); }
+.mood-insights h3 { font-size: 15px; font-weight: 600; margin-bottom: 12px;
+  display: flex; align-items: center; gap: 6px; }
+
+.pattern-header { display: flex; align-items: center; gap: 8px;
+  font-size: 15px; font-weight: 700; color: var(--text); margin-bottom: 14px; }
+.pattern-icon { font-size: 16px; }
+.pattern-sentence { font-size: 14px; color: var(--text); line-height: 1.55;
+  padding: 12px 14px; background: var(--surface); border-radius: 10px;
+  margin-bottom: 16px; }
+
+/* ═══ EMOTION BAR CHART ═══ */
+.emotion-chart {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.emotion-bar-row {
+  display: grid;
+  grid-template-columns: 120px 1fr 40px;
+  align-items: center;
+  gap: 10px;
+}
+
+.emotion-bar-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13.5px;
+  font-weight: 500;
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.emotion-bar-emoji { font-size: 16px; flex-shrink: 0; }
+
+.emotion-bar-track {
+  background: var(--surface);
+  border-radius: 10px;
+  height: 22px;
+  overflow: hidden;
+  position: relative;
+}
+
+.emotion-bar-fill {
+  height: 100%;
+  border-radius: 10px;
+  transition: width 0.5s ease;
+  min-width: 6px;
+}
+
+.emotion-bar-count {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text);
+  text-align: right;
+}
+
+/* Emotion bar colours — light theme */
+.emotion-bar-fill.bar-happy     { background: linear-gradient(90deg, #f5d76e, #e0c040); }
+.emotion-bar-fill.bar-calm      { background: linear-gradient(90deg, #9ad89a, #6eb86e); }
+.emotion-bar-fill.bar-tender    { background: linear-gradient(90deg, #f5b8ce, #e88cb0); }
+.emotion-bar-fill.bar-moody     { background: linear-gradient(90deg, #9aaac8, #6a7ba0); }
+.emotion-bar-fill.bar-irritable { background: linear-gradient(90deg, #f0a878, #d97a4a); }
+.emotion-bar-fill.bar-anxious   { background: linear-gradient(90deg, #c8a8e8, #9a7ac8); }
+.emotion-bar-fill.bar-sad       { background: linear-gradient(90deg, #8aa8e8, #5a7ac8); }
+.emotion-bar-fill.bar-tired     { background: linear-gradient(90deg, #b8b8b8, #888888); }
+
+/* Dark theme — slightly deeper tones */
+body[data-theme="dark"] .emotion-bar-fill.bar-happy     { background: linear-gradient(90deg, #e0c878, #b89f3a); }
+body[data-theme="dark"] .emotion-bar-fill.bar-calm      { background: linear-gradient(90deg, #b9e0b9, #6eaa6e); }
+body[data-theme="dark"] .emotion-bar-fill.bar-tender    { background: linear-gradient(90deg, #e8b8c8, #c478a0); }
+body[data-theme="dark"] .emotion-bar-fill.bar-moody     { background: linear-gradient(90deg, #b8c8e0, #7088b0); }
+body[data-theme="dark"] .emotion-bar-fill.bar-irritable { background: linear-gradient(90deg, #e8c8a8, #c08858); }
+body[data-theme="dark"] .emotion-bar-fill.bar-anxious   { background: linear-gradient(90deg, #d4bce0, #a088c8); }
+body[data-theme="dark"] .emotion-bar-fill.bar-sad       { background: linear-gradient(90deg, #b8c8e8, #7088c8); }
+body[data-theme="dark"] .emotion-bar-fill.bar-tired     { background: linear-gradient(90deg, #cccccc, #909090); }
+
+@media (min-width: 900px) {
+  .emotion-chart {
+    max-width: 520px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+}
+
+.dash-banner { border-radius: 18px; padding: 18px; margin-bottom: 16px;
+  border: 1.5px solid transparent; background: var(--card-bg); }
+.dash-banner.menstrual { background: #fdeaea; border-color: #f5a0a0; }
+.dash-banner.follicular { background: #eaf7ea; border-color: #b9e0b9; }
+.dash-banner.ovulation { background: #e6f5f5; border-color: #7ec8c8; }
+.dash-banner.luteal { background: #f4ecf8; border-color: #d4bce0; }
+body[data-theme="dark"] .dash-banner.menstrual { background: #3a2222; border-color: #6a3232; }
+body[data-theme="dark"] .dash-banner.follicular { background: #223a22; border-color: #326a32; }
+body[data-theme="dark"] .dash-banner.ovulation { background: #1f3535; border-color: #2e5f5f; }
+body[data-theme="dark"] .dash-banner.luteal { background: #2e223a; border-color: #4e3266; }
+.dash-banner-row { display: flex; justify-content: space-between;
+  align-items: flex-start; gap: 12px; }
+.dash-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em;
+  color: var(--text-muted); font-weight: 600; margin-bottom: 4px; }
+.dash-phase { font-size: 18px; font-weight: 700; color: var(--text); line-height: 1.25; }
+.dash-banner.menstrual .dash-phase { color: #7a2626; }
+.dash-banner.follicular .dash-phase { color: #2e6e2e; }
+.dash-banner.ovulation .dash-phase { color: #144a4a; }
+.dash-banner.luteal .dash-phase { color: #5a3a6a; }
+body[data-theme="dark"] .dash-banner.menstrual .dash-phase { color: #f5a0a0; }
+body[data-theme="dark"] .dash-banner.follicular .dash-phase { color: #b9e0b9; }
+body[data-theme="dark"] .dash-banner.ovulation .dash-phase { color: #7ec8c8; }
+body[data-theme="dark"] .dash-banner.luteal .dash-phase { color: #d4bce0; }
+.dash-day { text-align: right; flex-shrink: 0; }
+.dash-day-num { font-size: 17px; font-weight: 700; color: var(--text); line-height: 1; }
+.dash-day-total { font-size: 11px; color: var(--text-muted); margin-top: 3px; }
+.dash-banner.menstrual .dash-day-num { color: #7a2626; }
+.dash-banner.follicular .dash-day-num { color: #2e6e2e; }
+.dash-banner.ovulation .dash-day-num { color: #144a4a; }
+.dash-banner.luteal .dash-day-num { color: #5a3a6a; }
+body[data-theme="dark"] .dash-banner.menstrual .dash-day-num { color: #f5a0a0; }
+body[data-theme="dark"] .dash-banner.follicular .dash-day-num { color: #b9e0b9; }
+body[data-theme="dark"] .dash-banner.ovulation .dash-day-num { color: #7ec8c8; }
+body[data-theme="dark"] .dash-banner.luteal .dash-day-num { color: #d4bce0; }
+
+.dash-progress { display: flex; justify-content: space-between; margin-top: 18px; position: relative; }
+.dash-progress::before { content: ''; position: absolute; top: 11px;
+  left: 12px; right: 12px; height: 2px; background: rgba(0,0,0,0.08); z-index: 0; }
+body[data-theme="dark"] .dash-progress::before { background: rgba(255,255,255,0.1); }
+.dash-step { position: relative; z-index: 1; flex: 1; display: flex;
+  flex-direction: column; align-items: center; gap: 6px; }
+.dash-step-dot { width: 24px; height: 24px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 700; background: var(--surface);
+  color: var(--text-light); border: 2px solid var(--border); transition: all 0.25s; }
+.dash-step.done .dash-step-dot { background: #b9e0b9; color: white; border-color: #b9e0b9; }
+.dash-step.current .dash-step-dot { background: var(--accent); color: white;
+  border-color: var(--accent); transform: scale(1.1);
+  box-shadow: 0 0 0 4px rgba(212, 168, 160, 0.2); }
+.dash-step-label { font-size: 10px; font-weight: 600; text-transform: uppercase;
+  letter-spacing: 0.03em; color: var(--text-light); text-align: center; }
+.dash-step.done .dash-step-label { color: #2e6e2e; }
+.dash-step.current .dash-step-label { color: var(--accent); }
+
+.dash-detail { border-radius: 16px; padding: 18px; margin-bottom: 16px;
+  border: 1.5px solid transparent; background: var(--card-bg); }
+.dash-detail.menstrual { background: #fdeaea; border-color: #f5a0a0; }
+.dash-detail.follicular { background: #eaf7ea; border-color: #b9e0b9; }
+.dash-detail.ovulation { background: #e6f5f5; border-color: #7ec8c8; }
+.dash-detail.luteal { background: #f4ecf8; border-color: #d4bce0; }
+body[data-theme="dark"] .dash-detail.menstrual { background: #3a2222; border-color: #6a3232; }
+body[data-theme="dark"] .dash-detail.follicular { background: #223a22; border-color: #326a32; }
+body[data-theme="dark"] .dash-detail.ovulation { background: #1f3535; border-color: #2e5f5f; }
+body[data-theme="dark"] .dash-detail.luteal { background: #2e223a; border-color: #4e3266; }
+.dash-block { padding: 10px 0; border-bottom: 1px solid rgba(0,0,0,0.06); }
+body[data-theme="dark"] .dash-block { border-bottom-color: rgba(255,255,255,0.08); }
+.dash-block:last-child { border-bottom: none; padding-bottom: 0; }
+.dash-block:first-child { padding-top: 0; }
+.dash-block-title { font-size: 12px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.04em; color: var(--text-muted); margin-bottom: 8px; }
+.dash-block-body { font-size: 13.5px; color: var(--text); line-height: 1.55; }
+.dash-detail ul { list-style: none; padding: 0; margin: 0; }
+.dash-detail li { padding: 4px 0 4px 18px; position: relative;
+  font-size: 13.5px; color: var(--text); line-height: 1.5; }
+.dash-detail li::before { content: '•'; position: absolute; left: 4px;
+  color: var(--text-light); font-weight: bold; }
+
+.today-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+@media (min-width: 900px) {
+  .today-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    align-items: start;
+  }
+  .today-grid .dash-detail,
+  .today-grid .dash-banner {
+    grid-column: 1 / -1;
+  }
+  .today-grid .card {
+    margin-bottom: 0;
+  }
+}
+
+.health-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+@media (min-width: 900px) {
+  .health-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    align-items: start;
+  }
+  .health-grid .health-summary {
+    grid-column: 1 / -1;
+  }
+  .health-grid .card,
+  .health-grid > div {
+    margin-bottom: 0;
+  }
+}
+
+.insights-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+@media (min-width: 900px) {
+  .insights-grid {
+    flex-direction: row;
+  }
+}
+
+.settings-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+@media (min-width: 900px) {
+  .settings-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    align-items: start;
+  }
+  .settings-grid > div {
+    margin-bottom: 0;
+  }
+}
+
+.settings-row { display: flex; justify-content: space-between; align-items: center;
+  padding: 14px 0; border-bottom: 1px solid var(--divider); }
+.settings-row:last-child { border-bottom: none; }
+.settings-row .label { font-size: 14px; font-weight: 500; color: var(--text); }
+.settings-row .desc { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+.toggle { position: relative; width: 46px; height: 26px; flex-shrink: 0; }
+.toggle input { opacity: 0; width: 0; height: 0; }
+.toggle .slider { position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+  background: #ccc; border-radius: 26px; cursor: pointer; transition: 0.3s; }
+.toggle .slider::before { content: ''; position: absolute; height: 20px; width: 20px;
+  left: 3px; bottom: 3px; background: white; border-radius: 50%; transition: 0.3s; }
+.toggle input:checked + .slider { background: var(--accent); }
+.toggle input:checked + .slider::before { transform: translateX(20px); }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script>
+window.onerror = function(msg, url, line, col, err) {
+  document.getElementById('root').innerHTML =
+    '<div class="error-box"><b>JAVASCRIPT ERROR:</b><br>' +
+    msg + '<br><br>Line: ' + line + '<br>' +
+    (err && err.stack ? '<pre>' + err.stack + '</pre>' : '') +
+    '</div>';
+  return false;
+};
+</script>
+
+<script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+
+<script>
+if (typeof React === 'undefined' || typeof ReactDOM === 'undefined') {
+  document.getElementById('root').innerHTML =
+    '<div class="error-box"><b>React failed to load!</b></div>';
+} else {
+  var useState = React.useState;
+  var useEffect = React.useEffect;
+
+  // ═══ HELPERS ═══
+  function pad2(n) { return String(n).padStart(2,'0'); }
+  function getToday() {
+    var d = new Date();
+    return d.getFullYear()+'-'+pad2(d.getMonth()+1)+'-'+pad2(d.getDate());
+  }
+  function parseDate(s) { var p = s.split('-'); return new Date(+p[0], +p[1]-1, +p[2]); }
+  function fmt(d) { return d.getFullYear()+'-'+pad2(d.getMonth()+1)+'-'+pad2(d.getDate()); }
+  function addDays(s, n) { var d = parseDate(s); d.setDate(d.getDate()+n); return fmt(d); }
+  function daysBetween(a, b) { return Math.round((parseDate(a) - parseDate(b)) / 86400000); }
+  function formatDate(s) {
+    if (!s) return '';
+    return parseDate(s).toLocaleDateString('en-US',
+      { month:'short', day:'numeric', year:'numeric' });
+  }
+  function isToday(s) { return s === getToday(); }
+  function getMonthDays(y,m) { return new Date(y,m+1,0).getDate(); }
+  function getFirstDayOfMonth(y,m) { return new Date(y,m,1).getDay(); }
+  function formatMonthYear(y,m) {
+    return new Date(y,m).toLocaleDateString('en-US',{month:'long',year:'numeric'});
+  }
+
+  // ═══ EMOTIONS ═══
+  var EMOTIONS = [
+    { id: 'happy',    emoji: '😊', label: 'Happy' },
+    { id: 'calm',     emoji: '😌', label: 'Calm' },
+    { id: 'tender',   emoji: '🌸', label: 'Tender' },
+    { id: 'moody',    emoji: '🌧️', label: 'Moody' },
+    { id: 'irritable',emoji: '😤', label: 'Irritable' },
+    { id: 'anxious',  emoji: '😰', label: 'Anxious' },
+    { id: 'sad',      emoji: '😢', label: 'Sad' },
+    { id: 'tired',    emoji: '😴', label: 'Tired' }
+  ];
+  function getEmotion(id) {
+    for (var i = 0; i < EMOTIONS.length; i++) {
+      if (EMOTIONS[i].id === id) return EMOTIONS[i];
+    }
+    return { emoji: '•', label: '' };
+  }
+
+  // ═══ UNIFIED PHASE INFO ═══
+  var PHASES = {
+    menstrual: {
+      emoji: '🩸', label: 'Menstrual Phase', color: 'menstrual',
+      whatHappening: 'Your uterine lining is shedding. Estrogen and progesterone are at their lowest.',
+      typicalChanges: 'Estrogen and progesterone are at their lowest. The uterine lining is shedding.',
+      symptoms: ['Cramps in lower abdomen or back','Fatigue and low energy','Headaches or migraines','Bloating and water retention','Mood sensitivity'],
+      selfCare: ['Prioritise rest and slower mornings','Apply a heating pad for cramps','Eat iron-rich foods (spinach, lentils, red meat)','Stay hydrated — water reduces bloating','Gentle walks or restorative yoga'],
+      feelings: 'You may feel tired, crampy, or emotionally tender.'
+    },
+    follicular: {
+      emoji: '🌱', label: 'Follicular Phase', color: 'follicular',
+      whatHappening: 'Estrogen is rising. Follicles are maturing, and your energy is rebuilding.',
+      typicalChanges: 'Estrogen is rising. Follicles in the ovaries are maturing, and your energy is rebuilding.',
+      symptoms: ['Higher energy and focus','Clearer skin','Improved mood and motivation','Increased creativity','Mild to no symptoms for most'],
+      selfCare: ['Great time to start new projects','Try higher-intensity workouts','Eat fermented foods (yogurt, kimchi)','Get quality sleep to support rising hormones','Socialise — you\'ll feel more outgoing'],
+      feelings: 'You may feel motivated, social, and mentally clear.'
+    },
+    ovulation: {
+      emoji: '✨', label: 'Ovulation Phase', color: 'ovulation',
+      whatHappening: 'An egg is released from the ovary. Estrogen peaks and LH surges.',
+      typicalChanges: 'Estrogen peaks and LH surges, releasing a mature egg. This is your most fertile window.',
+      symptoms: ['Clear, stretchy discharge (like egg white)','Mild twinge on one side of the lower belly','Higher libido','Slight rise in body temperature','Peak energy and confidence'],
+      selfCare: ['Track if you\'re trying to conceive','Lighter meals — digestion may be more sensitive','Stay hydrated','Listen to your body — this is peak energy time','Note any ovulation pain (mittelschmerz)'],
+      feelings: 'You may feel confident, outgoing, and physically energetic.'
+    },
+    luteal: {
+      emoji: '🌙', label: 'Luteal Phase', color: 'luteal',
+      whatHappening: 'Progesterone rises to support a potential pregnancy. If none, levels fall toward the end, triggering PMS.',
+      typicalChanges: 'Progesterone rises to support a potential pregnancy. If none, hormone levels fall toward the end, triggering PMS.',
+      symptoms: ['Bloating and water retention','Mood swings and irritability','Cravings (often sweet or salty)','Fatigue or low energy','Headaches or acne flare-ups'],
+      selfCare: ['Magnesium-rich foods (dark chocolate, nuts, bananas)','Reduce caffeine, salt, and alcohol','Prioritise sleep — your body needs more rest','Gentle movement and stretching','Complex carbs (oats, sweet potatoes) for steady energy'],
+      feelings: 'You may feel more introspective, tired, or emotional.'
+    },
+    unknown: {
+      emoji: '🌿', label: 'Not enough data', color: 'unknown',
+      whatHappening: 'Log a few periods so we can figure out which phase you\'re in.',
+      typicalChanges: 'Log a few periods and we\'ll figure out which phase you\'re in.',
+      symptoms: [],
+      selfCare: ['Log your period start dates for 2-3 cycles','The more you log, the more accurate your predictions'],
+      feelings: ''
+    }
+  };
+
+  // ═══ CORE LOGIC ═══
+  function deriveStarts(days) {
+    if (!days || days.length === 0) return [];
+    var sorted = days.slice().sort();
+    var starts = [sorted[0]];
+    for (var i = 1; i < sorted.length; i++) {
+      if (daysBetween(sorted[i], sorted[i-1]) > 1) starts.push(sorted[i]);
+    }
+    return starts;
+  }
+
+  // ═══ API ═══
+  var API = '/FlowTrack/api';
+  function api(endpoint, options) {
+    options = options || {};
+    return fetch(API + endpoint, {
+      method: options.method || 'GET',
+      headers: { 'Content-Type': 'application/json' },
+      body: options.body
+    }).then(function(res) {
+      if (!res.ok) return res.text().then(function(t) { throw new Error(t); });
+      if (res.status === 204) return null;
+      return res.json();
+    });
+  }
+
+  // ═══ THEME ═══
+  function applyTheme(theme) {
+    document.body.setAttribute('data-theme', theme === 'dark' ? 'dark' : 'light');
+  }
+
+  // ═══ NAV ITEMS (shared) ═══
+  var NAV_ITEMS = [
+    { id: 'today', label: 'Today' },
+    { id: 'calendar', label: 'Calendar' },
+    { id: 'emotions', label: 'Emotions' },
+    { id: 'health', label: 'Health' },
+    { id: 'insights', label: 'Insights' },
+    { id: 'settings', label: 'Settings' }
+  ];
+
+  // ═══ LOGIN ═══
+  function LoginPage(props) {
+    var mState = useState('login');
+    var mode = mState[0], setMode = mState[1];
+    var uState = useState('');
+    var username = uState[0], setUsername = uState[1];
+    var pState = useState('');
+    var password = pState[0], setPassword = pState[1];
+    var cState = useState('');
+    var confirm = cState[0], setConfirm = cState[1];
+    var lState = useState(false);
+    var loading = lState[0], setLoading = lState[1];
+    var eState = useState('');
+    var error = eState[0], setError = eState[1];
+
+    function submit() {
+      setError('');
+      if (!username.trim()) { setError('Enter username'); return; }
+      if (!password) { setError('Enter password'); return; }
+      if (mode === 'signup' && password !== confirm) { setError('Passwords don\'t match'); return; }
+      if (mode === 'signup' && password.length < 4) { setError('Min 4 chars'); return; }
+      setLoading(true);
+      api(mode === 'login' ? '/login' : '/signup', {
+        method: 'POST',
+        body: JSON.stringify({ username: username.trim(), password: password })
+      }).then(function(r) {
+        localStorage.setItem('ft_userId', r.id);
+        localStorage.setItem('ft_username', r.username);
+        props.onLogin(r.id, r.username, mode === 'signup');
+      }).catch(function(e) {
+        var msg = e.message;
+        try { msg = JSON.parse(msg).error || msg; } catch(x) {}
+        setError(msg);
+        setLoading(false);
+      });
+    }
+
+    return React.createElement('div', { className: 'auth-shell' },
+      React.createElement('div', { className: 'auth-header' },
+        React.createElement('h1', null, '🌿 FlowTrack')),
+      React.createElement('div', { className: 'login-tabs' },
+        React.createElement('button', {
+          className: mode === 'login' ? 'active' : '',
+          onClick: function() { setMode('login'); setError(''); }
+        }, 'Log in'),
+        React.createElement('button', {
+          className: mode === 'signup' ? 'active' : '',
+          onClick: function() { setMode('signup'); setError(''); }
+        }, 'Sign up')),
+      error ? React.createElement('div', { className: 'error-box' }, error) : null,
+      React.createElement('div', { className: 'input-group' },
+        React.createElement('label', null, 'Username'),
+        React.createElement('input', {
+          type: 'text', value: username, placeholder: 'e.g. bella',
+          onChange: function(e) { setUsername(e.target.value); }
+        })),
+      React.createElement('div', { className: 'input-group' },
+        React.createElement('label', null, 'Password'),
+        React.createElement('input', {
+          type: 'password', value: password,
+          placeholder: mode === 'signup' ? 'Min 4 characters' : 'Your password',
+          onChange: function(e) { setPassword(e.target.value); },
+          onKeyDown: function(e) { if (e.key === 'Enter' && mode === 'login') submit(); }
+        })),
+      mode === 'signup' ? React.createElement('div', { className: 'input-group' },
+        React.createElement('label', null, 'Confirm Password'),
+        React.createElement('input', {
+          type: 'password', value: confirm, placeholder: 'Re-enter',
+          onChange: function(e) { setConfirm(e.target.value); }
+        })) : null,
+      React.createElement('button', {
+        className: 'btn btn-block', onClick: submit, disabled: loading,
+        style: { marginTop: 8 }
+      }, loading ? 'Please wait...' : (mode === 'login' ? 'Log in' : 'Create account')));
+  }
+
+  // ═══ ONBOARDING ═══
+  function Onboarding(props) {
+    var sState = useState(0);
+    var step = sState[0], setStep = sState[1];
+    var aState = useState('');
+    var age = aState[0], setAge = aState[1];
+    var lpState = useState('');
+    var lastPeriod = lpState[0], setLastPeriod = lpState[1];
+    var lpdState = useState(5);
+    var lastDur = lpdState[0], setLastDur = lpdState[1];
+    var ckState = useState(true);
+    var cycleKnown = ckState[0], setCycleKnown = ckState[1];
+    var clState = useState('28');
+    var cycleLength = clState[0], setCycleLength = clState[1];
+    var prevState = useState([]);
+    var prevPeriods = prevState[0], setPrevPeriods = prevState[1];
+    var piState = useState('');
+    var prevInput = piState[0], setPrevInput = piState[1];
+    var pdiState = useState(5);
+    var prevDurInput = pdiState[0], setPrevDurInput = pdiState[1];
+
+    function addPrev() {
+      if (!prevInput) return;
+      var exists = prevPeriods.some(function(p) { return p.startDate === prevInput; });
+      if (exists) return;
+      var updated = prevPeriods.concat([{
+        startDate: prevInput, duration: prevDurInput || 5
+      }]).sort(function(a, b) { return a.startDate.localeCompare(b.startDate); });
+      setPrevPeriods(updated);
+      setPrevInput('');
+      setPrevDurInput(5);
+    }
+
+    function finish() {
+      if (!age) { alert('Enter age'); return; }
+      if (!lastPeriod) { alert('Enter last period start'); return; }
+      var finalCycle = cycleKnown ? (parseInt(cycleLength) || 28) : 28;
+      var allPeriods = prevPeriods.concat([{
+        startDate: lastPeriod, duration: lastDur || 5
+      }]).sort(function(a, b) { return a.startDate.localeCompare(b.startDate); });
+      var payload = {
+        userId: props.userId,
+        age: parseInt(age) || 0,
+        goal: 'track',
+        periodLength: lastDur || 5,
+        cycleLength: finalCycle,
+        periods: allPeriods
+      };
+      api('/', { method: 'POST', body: JSON.stringify(payload) })
+        .then(function() { props.onComplete(); })
+        .catch(function(e) { alert('Error: ' + e.message); });
+    }
+
+    function renderCycleInput() {
+      if (cycleKnown) {
+        return React.createElement('div', { className: 'input-group' },
+          React.createElement('input', {
+            type: 'number', value: cycleLength, placeholder: '28',
+            onChange: function(e) { setCycleLength(e.target.value); }
+          }));
+      }
+      return React.createElement('div', {
+        style: { background: 'var(--card-bg)', padding: 14, borderRadius: 10,
+          fontSize: 13, color: 'var(--text-muted)', lineHeight: 1.5 }
+      }, 'No problem! We\'ll start with the average 28 days. As you log more periods, we\'ll learn your actual cycle length.');
+    }
+
+    var steps = [
+      React.createElement('div', { key: 0 },
+        React.createElement('h2', null, 'Your age?'),
+        React.createElement('div', { className: 'input-group' },
+          React.createElement('input', {
+            type: 'number', value: age, placeholder: '28',
+            onChange: function(e) { setAge(e.target.value); }
+          }))),
+      React.createElement('div', { key: 1 },
+        React.createElement('h2', null, 'Your most recent period'),
+        React.createElement('div', { className: 'sub' },
+          'When did it start, and how many days did it last?'),
+        React.createElement('div', { className: 'input-group' },
+          React.createElement('label', null, 'Start date'),
+          React.createElement('input', {
+            type: 'date', value: lastPeriod,
+            onChange: function(e) { setLastPeriod(e.target.value); },
+            max: getToday()
+          })),
+        React.createElement('div', { className: 'input-group' },
+          React.createElement('label', null, 'How many days did it last?'),
+          React.createElement('div', { className: 'radio-group' },
+            [3,4,5,6,7].map(function(len) {
+              return React.createElement('label', {
+                key: len, className: lastDur === len ? 'selected' : ''
+              },
+                React.createElement('input', {
+                  type: 'radio', checked: lastDur === len,
+                  onChange: function() { setLastDur(len); }
+                }),
+                len === 7 ? '7+ days' : len + ' days');
+            }),
+            React.createElement('label', {
+              className: lastDur === 0 ? 'selected' : ''
+            },
+              React.createElement('input', {
+                type: 'radio', checked: lastDur === 0,
+                onChange: function() { setLastDur(0); }
+              }),
+              'I don\'t know')))),
+      React.createElement('div', { key: 2 },
+        React.createElement('h2', null, 'How long is your cycle?'),
+        React.createElement('div', { className: 'sub' },
+          'Days from start of one period to start of the next'),
+        React.createElement('div', { className: 'radio-group', style: { marginBottom: 12 } },
+          React.createElement('label', {
+            className: cycleKnown ? 'selected' : ''
+          },
+            React.createElement('input', {
+              type: 'radio', checked: cycleKnown,
+              onChange: function() { setCycleKnown(true); }
+            }),
+            'I know it'),
+          React.createElement('label', {
+            className: !cycleKnown ? 'selected' : ''
+          },
+            React.createElement('input', {
+              type: 'radio', checked: !cycleKnown,
+              onChange: function() { setCycleKnown(false); }
+            }),
+            'I don\'t know')),
+        renderCycleInput()),
+      React.createElement('div', { key: 3 },
+        React.createElement('h2', null, 'Previous periods'),
+        React.createElement('div', { className: 'sub' },
+          'Add 2-3 for much better predictions.'),
+        React.createElement('div', {
+          style: { display: 'flex', gap: 6, marginBottom: 12, flexWrap: 'wrap' }
+        },
+          React.createElement('input', {
+            type: 'date', value: prevInput,
+            onChange: function(e) { setPrevInput(e.target.value); },
+            style: { flex: 1, minWidth: 120 }
+          }),
+          React.createElement('input', {
+            type: 'number', value: prevDurInput, placeholder: 'days',
+            min: 1, max: 15,
+            onChange: function(e) { setPrevDurInput(parseInt(e.target.value) || 5); },
+            style: { width: 80 }
+          }),
+          React.createElement('button', {
+            className: 'btn', onClick: addPrev, disabled: !prevInput
+          }, 'Add')),
+        prevPeriods.length === 0 ?
+          React.createElement('div', {
+            style: { padding: 20, textAlign: 'center', color: 'var(--text-light)', fontSize: 13 }
+          }, 'No previous periods added yet.') :
+          prevPeriods.map(function(p) {
+            return React.createElement('div', {
+              key: p.startDate, className: 'period-row'
+            },
+              React.createElement('span', null,
+                formatDate(p.startDate) + ' · ' + p.duration + ' days'),
+              React.createElement('button', {
+                onClick: function() {
+                  setPrevPeriods(prevPeriods.filter(function(x) {
+                    return x.startDate !== p.startDate;
+                  }));
+                }
+              }, '✕'));
+          }))
+    ];
+
+    return React.createElement('div', { className: 'auth-shell' },
+      React.createElement('div', { style: { display: 'flex',
+        justifyContent: 'space-between', marginBottom: 16 } },
+        React.createElement('h2', null, '🌿 Setup'),
+        React.createElement('span', { style: { color: 'var(--text-light)' } },
+          (step+1) + ' / ' + steps.length)),
+      steps[step],
+      React.createElement('div', { style: { display: 'flex', gap: 10, marginTop: 20 } },
+        step > 0 ? React.createElement('button', {
+          className: 'btn btn-outline',
+          onClick: function() { setStep(step - 1); },
+          style: { flex: 1 }
+        }, 'Back') : null,
+        React.createElement('button', {
+          className: 'btn',
+          onClick: function() {
+            if (step < steps.length - 1) setStep(step + 1);
+            else finish();
+          },
+          style: { flex: 1 }
+        }, step < steps.length - 1 ? 'Next' : 'Finish')));
+  }
+
+  // ═══ EMOTION BOARD ═══
+  function EmotionBoard(props) {
+    var dataState = useState([]);
+    var emotions = dataState[0], setEmotions = dataState[1];
+    var today = getToday();
+
+    var editState = useState(today);
+    var editDate = editState[0], setEditDate = editState[1];
+
+    var periodState = useState(null);
+    var periodData = periodState[0], setPeriodData = periodState[1];
+
+    function reload() {
+      api('/' + props.userId + '/emotions')
+        .then(function(d) { setEmotions(d || []); })
+        .catch(function() { setEmotions([]); });
+      api('/' + props.userId + '/periods')
+        .then(function(d) { setPeriodData(d); })
+        .catch(function() { setPeriodData(null); });
+    }
+
+    useEffect(function() { reload(); }, [props.userId]);
+
+    var map = {};
+    emotions.forEach(function(e) { map[e.date] = e.emotion; });
+
+    var editingEmotion = map[editDate] || null;
+
+    function pick(emotionId) {
+      var currentlySelected = map[editDate];
+      var newEmotion = currentlySelected === emotionId ? '' : emotionId;
+      if (newEmotion === '') {
+        api('/' + props.userId + '/emotions/' + editDate, { method: 'DELETE' })
+          .then(reload).catch(function(e) { alert('Error: ' + e.message); });
+      } else {
+        api('/' + props.userId + '/emotions', {
+          method: 'POST',
+          body: JSON.stringify({ date: editDate, emotion: newEmotion })
+        }).then(reload).catch(function(e) { alert(e.message); });
+      }
+    }
+
+    var days = [];
+    var dj;
+    for (dj = 13; dj >= 0; dj--) days.push(addDays(today, -dj));
+
+    var counts = {};
+    emotions.forEach(function(e) { counts[e.emotion] = (counts[e.emotion] || 0) + 1; });
+    var total = emotions.length;
+    var sortedCounts = Object.keys(counts).map(function(k) {
+      return { id: k, count: counts[k] };
+    }).sort(function(a, b) { return b.count - a.count; });
+
+    var mostCommon = sortedCounts.length > 0 ? sortedCounts[0] : null;
+
+    var phaseMoodCounts = { menstrual: {}, follicular: {}, ovulation: {}, luteal: {} };
+
+    if (periodData && periodData.periodDays && periodData.periodDays.length > 0) {
+      var actualDays = periodData.periodDays.slice().sort();
+      var actualStarts = deriveStarts(actualDays);
+      var cycleLen = periodData.averageCycleLength || periodData.cycleLength || 28;
+      var periodLen = periodData.averagePeriodDuration || periodData.periodLength || 5;
+
+      emotions.forEach(function(e) {
+        var anchor = null;
+        var k;
+        for (k = actualStarts.length - 1; k >= 0; k--) {
+          if (actualStarts[k] <= e.date) { anchor = actualStarts[k]; break; }
+        }
+        if (!anchor) return;
+        var diff = daysBetween(e.date, anchor);
+        var pos = diff % cycleLen;
+        if (pos < 0) pos += cycleLen;
+        var ovDay = cycleLen - 14;
+        var phase;
+        if (pos < periodLen) phase = 'menstrual';
+        else if (pos < ovDay - 5) phase = 'follicular';
+        else if (pos <= ovDay) phase = 'ovulation';
+        else phase = 'luteal';
+        phaseMoodCounts[phase][e.emotion] = (phaseMoodCounts[phase][e.emotion] || 0) + 1;
+      });
+    }
+
+    function dominantPhaseForEmotion(emotionId) {
+      var bestPhase = null, bestCount = 0;
+      ['menstrual', 'follicular', 'ovulation', 'luteal'].forEach(function(phase) {
+        var c = phaseMoodCounts[phase][emotionId] || 0;
+        if (c > bestCount) { bestCount = c; bestPhase = phase; }
+      });
+      return { phase: bestPhase, count: bestCount };
+    }
+
+    var insightContent;
+
+    if (total === 0) {
+      insightContent = React.createElement('div', { style: { fontSize: 13, color: 'var(--text-light)', padding: '10px 0' } },
+        'Log a few moods to see patterns here.');
+    } else {
+      var topEmotion = mostCommon;
+      var topEmInfo = getEmotion(topEmotion.id);
+      var topPhaseInfo = dominantPhaseForEmotion(topEmotion.id);
+      var topPhaseLabel = topPhaseInfo.phase
+        ? PHASES[topPhaseInfo.phase].label.replace(' Phase', '') : null;
+
+      var sentence1 = 'You logged ' + topEmInfo.label.toLowerCase() +
+        ' on ' + topEmotion.count + ' day' + (topEmotion.count === 1 ? '' : 's');
+      if (topPhaseLabel && topPhaseInfo.count >= 2) {
+        sentence1 += ', with most occurrences during your ' + topPhaseLabel + ' phase.';
+      } else {
+        sentence1 += '.';
+      }
+
+      // ⭐ Build the bar chart — the max count becomes 100% width
+      var maxCount = sortedCounts[0].count;
+
+      var chartRows = sortedCounts.map(function(item) {
+        var em = getEmotion(item.id);
+        var pct = Math.max(6, (item.count / maxCount) * 100);
+        return React.createElement('div', {
+          key: item.id, className: 'emotion-bar-row'
+        },
+          React.createElement('div', { className: 'emotion-bar-label' },
+            React.createElement('span', { className: 'emotion-bar-emoji' }, em.emoji),
+            React.createElement('span', null, em.label)),
+          React.createElement('div', { className: 'emotion-bar-track' },
+            React.createElement('div', {
+              className: 'emotion-bar-fill bar-' + item.id,
+              style: { width: pct + '%' }
+            })),
+          React.createElement('div', { className: 'emotion-bar-count' }, item.count));
+      });
+
+      insightContent = React.createElement('div', null,
+        React.createElement('div', { className: 'pattern-header' },
+          React.createElement('span', { className: 'pattern-icon' }, '📊'),
+          React.createElement('span', null, 'Mood breakdown')),
+        React.createElement('div', { className: 'pattern-sentence' }, sentence1),
+        React.createElement('div', { className: 'emotion-chart' }, chartRows));
+    }
+
+    return React.createElement('div', null,
+      React.createElement('h2', null, 'Emotion board'),
+      React.createElement('div', { className: 'sub' },
+        'Tap a day below to log or change your mood'),
+
+      React.createElement('div', { className: 'editing-banner' },
+        React.createElement('span', null,
+          isToday(editDate)
+            ? '🖊️ Editing today · ' + formatDate(editDate)
+            : '🖊️ Editing ' + formatDate(editDate)),
+        !isToday(editDate) ? React.createElement('button', {
+          onClick: function() { setEditDate(today); }
+        }, 'Back to today') : null),
+
+      React.createElement('div', { className: 'emotion-picker' },
+        EMOTIONS.map(function(em) {
+          return React.createElement('button', {
+            key: em.id,
+            className: editingEmotion === em.id ? 'selected' : '',
+            onClick: function() { pick(em.id); }
+          }, em.emoji + ' ' + em.label);
+        })),
+
+      React.createElement('h2', { style: { marginTop: 24 } }, 'Last 14 days'),
+      React.createElement('div', { className: 'emotion-history' },
+        days.map(function(d) {
+          var emId = map[d];
+          var em = emId ? getEmotion(emId) : null;
+          var cls = 'e-day';
+          if (emId) cls += ' has-emotion';
+          if (isToday(d)) cls += ' today';
+          if (d === editDate) cls += ' selected';
+          return React.createElement('div', {
+            key: d, className: cls, title: formatDate(d),
+            onClick: function() { setEditDate(d); }
+          },
+            React.createElement('span', { className: 'e-num' }, parseDate(d).getDate()),
+            em ? em.emoji : '');
+        })),
+
+      React.createElement('div', { className: 'mood-insights' },
+        insightContent));
+  }
+
+  // ═══ CALENDAR ═══
+  function CalendarPage(props) {
+    var dataState = useState(null);
+    var data = dataState[0], setData = dataState[1];
+    var yState = useState(new Date().getFullYear());
+    var viewYear = yState[0], setViewYear = yState[1];
+    var mState = useState(new Date().getMonth());
+    var viewMonth = mState[0], setViewMonth = mState[1];
+
+    function reload() {
+      api('/' + props.userId + '/periods')
+        .then(function(d) { setData(d); })
+        .catch(function(e) {
+          setData({
+            periodDays: [], periodLength: 5, cycleLength: 28,
+            averageCycleLength: 28, averagePeriodDuration: 5,
+            predictions: [], ranges: [], cycleCount: 0, confidence: 0
+          });
+        });
+    }
+
+    useEffect(function() { reload(); }, [props.userId]);
+
+    function toggleDay(date) {
+      if (!data) return;
+      var already = (data.periodDays || []).indexOf(date) >= 0;
+      var opts = already
+        ? { method: 'DELETE' }
+        : { method: 'POST', body: JSON.stringify({ date: date, duration: 1 }) };
+      var url = already
+        ? '/' + props.userId + '/periods/' + date
+        : '/' + props.userId + '/periods';
+      api(url, opts).then(reload).catch(function(e) { alert(e.message); });
+    }
+
+    function prevMonth() {
+      if (viewMonth === 0) { setViewYear(viewYear-1); setViewMonth(11); }
+      else setViewMonth(viewMonth-1);
+    }
+    function nextMonth() {
+      if (viewMonth === 11) { setViewYear(viewYear+1); setViewMonth(0); }
+      else setViewMonth(viewMonth+1);
+    }
+
+    if (!data) return React.createElement('div', { style: { padding: 20 } }, 'Loading...');
+
+    var pad = function(n) { return String(n).padStart(2,'0'); };
+    var firstDay = getFirstDayOfMonth(viewYear, viewMonth);
+    var daysInMonth = getMonthDays(viewYear, viewMonth);
+    var prevMonthDays = getMonthDays(viewYear, viewMonth - 1);
+
+    var cells = [];
+    var dayLabels = ['Su','Mo','Tu','We','Th','Fr','Sa'];
+    var i, d, k;
+
+    for (i = 0; i < firstDay; i++) {
+      var day = prevMonthDays - firstDay + i + 1;
+      var mm = viewMonth - 1;
+      var mo = mm < 0 ? 11 : mm;
+      var yr = mm < 0 ? viewYear - 1 : viewYear;
+      cells.push({ date: yr + '-' + pad(mo+1) + '-' + pad(day),
+        day: day, other: true });
+    }
+    for (d = 1; d <= daysInMonth; d++) {
+      cells.push({ date: viewYear + '-' + pad(viewMonth+1) + '-' + pad(d),
+        day: d, other: false });
+    }
+    var rem = (7 - (cells.length % 7)) % 7;
+    for (k = 1; k <= rem; k++) {
+      var m2 = viewMonth + 1;
+      var mo2 = m2 > 11 ? 0 : m2;
+      var yr2 = m2 > 11 ? viewYear + 1 : viewYear;
+      cells.push({ date: yr2 + '-' + pad(mo2+1) + '-' + pad(k),
+        day: k, other: true });
+    }
+
+    var actualDays = (data.periodDays || []).slice().sort();
+    var actualStarts = deriveStarts(actualDays);
+    var earliestLogged = actualDays.length > 0 ? actualDays[0] : null;
+    var lastStart = actualStarts.length > 0
+      ? actualStarts[actualStarts.length - 1] : null;
+
+    var cycleLen = data.averageCycleLength || data.cycleLength || 28;
+    var periodLen = data.averagePeriodDuration || data.periodLength || 5;
+
+    var predictedStartsSet = {};
+    var predictedDaysSet = {};
+    (data.predictions || []).forEach(function(pred) {
+      if (lastStart && pred.start <= lastStart) return;
+      predictedStartsSet[pred.start] = true;
+      var cur = pred.start;
+      var end = pred.end;
+      var safety = 0;
+      while (cur <= end && safety < 30) {
+        predictedDaysSet[cur] = true;
+        cur = addDays(cur, 1);
+        safety++;
+      }
+    });
+
+    function computePhaseForDate(targetDate) {
+      if (!lastStart) return 'unknown';
+      var anchor = null;
+      var j;
+      for (j = actualStarts.length - 1; j >= 0; j--) {
+        if (actualStarts[j] <= targetDate) { anchor = actualStarts[j]; break; }
+      }
+      if (!anchor) return 'unknown';
+      var diff = daysBetween(targetDate, anchor);
+      var pos = diff % cycleLen;
+      if (pos < 0) pos += cycleLen;
+      var ovDay = cycleLen - 14;
+      if (pos < periodLen) return 'menstrual';
+      if (pos < ovDay - 5) return 'follicular';
+      if (pos <= ovDay) return 'ovulation';
+      return 'luteal';
+    }
+
+    function getClass(cell) {
+      if (cell.other) return 'day-cell other';
+      var cls = 'day-cell';
+      var todayMark = isToday(cell.date);
+
+      if (actualStarts.indexOf(cell.date) >= 0) {
+        cls += ' actual-start';
+        if (todayMark) cls += ' today';
+        return cls;
+      }
+      if (actualDays.indexOf(cell.date) >= 0) {
+        cls += ' actual';
+        if (todayMark) cls += ' today';
+        return cls;
+      }
+      if (!earliestLogged || cell.date < earliestLogged) {
+        if (todayMark) cls += ' today';
+        return cls;
+      }
+      if (predictedStartsSet[cell.date]) {
+        cls += ' predicted-start';
+        if (todayMark) cls += ' today';
+        return cls;
+      }
+      if (predictedDaysSet[cell.date]) {
+        cls += ' predicted';
+        if (todayMark) cls += ' today';
+        return cls;
+      }
+
+      var anchor = null;
+      var j;
+      for (j = actualStarts.length - 1; j >= 0; j--) {
+        if (actualStarts[j] <= cell.date) { anchor = actualStarts[j]; break; }
+      }
+
+      if (anchor) {
+        var diff = daysBetween(cell.date, anchor);
+        var pos = diff % cycleLen;
+        if (pos < 0) pos += cycleLen;
+        var ovDay = cycleLen - 14;
+        var isFuture = lastStart && cell.date > lastStart;
+
+        if (pos < periodLen) {
+          if (isFuture) cls += ' predicted';
+        } else if (pos < ovDay - 5) {
+          cls += ' follicular';
+        } else if (pos <= ovDay) {
+          cls += ' ovulation';
+        } else {
+          cls += ' luteal';
+        }
+      }
+
+      if (todayMark) cls += ' today';
+      return cls;
+    }
+
+    var today = getToday();
+    var todayPhase = computePhaseForDate(today);
+    var todayInfo = PHASES[todayPhase] || PHASES.unknown;
+
+    var dayInCycle = null;
+    if (lastStart) {
+      var anchorToday = null;
+      var jj;
+      for (jj = actualStarts.length - 1; jj >= 0; jj--) {
+        if (actualStarts[jj] <= today) { anchorToday = actualStarts[jj]; break; }
+      }
+      if (anchorToday) dayInCycle = daysBetween(today, anchorToday) + 1;
+    }
+
+    return React.createElement('div', null,
+      React.createElement('h2', null, 'Cycle calendar'),
+      React.createElement('div', { className: 'sub' },
+        'Tap any date to log or remove'),
+      React.createElement('div', { className: 'calendar-nav' },
+        React.createElement('button', { onClick: prevMonth }, '‹'),
+        React.createElement('span', { className: 'month-label' },
+          formatMonthYear(viewYear, viewMonth)),
+        React.createElement('button', { onClick: nextMonth }, '›')),
+      React.createElement('div', { className: 'calendar-grid' },
+        dayLabels.map(function(l) {
+          return React.createElement('div', { key: l, className: 'day-label' }, l);
+        }),
+        cells.map(function(cell, idx) {
+          return React.createElement('div', {
+            key: idx,
+            className: getClass(cell),
+            onClick: function() { if (!cell.other) toggleDay(cell.date); }
+          }, cell.day);
+        })),
+      React.createElement('div', { className: 'legend' },
+        React.createElement('span', null,
+          React.createElement('span', { className: 'swatch actual-start' }), 'Period start'),
+        React.createElement('span', null,
+          React.createElement('span', { className: 'swatch actual' }), 'Period day'),
+        React.createElement('span', null,
+          React.createElement('span', { className: 'swatch predicted' }), 'Predicted'),
+        React.createElement('span', null,
+          React.createElement('span', { className: 'swatch follicular' }), 'Follicular'),
+        React.createElement('span', null,
+          React.createElement('span', { className: 'swatch ovulation' }), 'Ovulation'),
+        React.createElement('span', null,
+          React.createElement('span', { className: 'swatch luteal' }), 'Luteal')),
+
+      React.createElement('div', { className: 'phase-panel ' + todayPhase },
+        React.createElement('div', { className: 'pp-header' },
+          React.createElement('div', { className: 'pp-phase' },
+            todayInfo.emoji + ' ' + todayInfo.label),
+          dayInCycle ? React.createElement('div', { className: 'pp-day' },
+            'Day ' + dayInCycle) : null),
+        React.createElement('div', { className: 'pp-body' },
+          todayInfo.whatHappening),
+        React.createElement('div', { className: 'pp-section' },
+          React.createElement('div', { className: 'pp-section-title' }, 'How to care for yourself'),
+          React.createElement('ul', null,
+            todayInfo.selfCare.map(function(tip, i) {
+              return React.createElement('li', { key: i }, tip);
+            }))),
+        todayInfo.feelings ? React.createElement('div', { className: 'pp-section' },
+          React.createElement('div', { className: 'pp-section-title' }, 'You might feel'),
+          React.createElement('div', { className: 'pp-body' }, todayInfo.feelings)) : null));
+  }
+
+  // ═══ TODAY ═══
+  function TodayPage(props) {
+    var dataState = useState(null);
+    var data = dataState[0], setData = dataState[1];
+
+    useEffect(function() {
+      api('/' + props.userId + '/periods').then(setData).catch(function() {
+        setData({ predictions: [], averageCycleLength: 28,
+          averagePeriodDuration: 5, confidence: 0, cycleCount: 0,
+          ranges: [], periodDays: [] });
+      });
+    }, [props.userId]);
+
+    if (!data) return React.createElement('div', { style: { padding: 20 } }, 'Loading...');
+
+    var predictions = data.predictions || [];
+    var avgCycle = data.averageCycleLength || data.cycleLength || 28;
+    var avgDur = data.averagePeriodDuration || data.periodLength || 5;
+    var confidence = data.confidence || 0;
+    var cycles = data.cycleCount || 0;
+    var actualDays = (data.periodDays || []).slice().sort();
+
+    var today = getToday();
+    var actualStarts = deriveStarts(actualDays);
+    var lastStart = actualStarts.length > 0
+      ? actualStarts[actualStarts.length - 1] : null;
+
+    var todayPhase = 'unknown';
+    var dayInCycle = null;
+
+    if (lastStart) {
+      var anchor = null;
+      var j;
+      for (j = actualStarts.length - 1; j >= 0; j--) {
+        if (actualStarts[j] <= today) { anchor = actualStarts[j]; break; }
+      }
+      if (anchor) {
+        var diff = daysBetween(today, anchor);
+        dayInCycle = diff + 1;
+        var pos = diff % avgCycle;
+        if (pos < 0) pos += avgCycle;
+        var ovDay = avgCycle - 14;
+        if (pos < avgDur) todayPhase = 'menstrual';
+        else if (pos < ovDay - 5) todayPhase = 'follicular';
+        else if (pos <= ovDay) todayPhase = 'ovulation';
+        else todayPhase = 'luteal';
+      }
+    }
+
+    var info = PHASES[todayPhase] || PHASES.unknown;
+
+    var phaseOrder = ['menstrual', 'follicular', 'ovulation', 'luteal'];
+    var currentIdx = phaseOrder.indexOf(todayPhase);
+
+    function renderList(items) {
+      return React.createElement('ul', null,
+        items.map(function(item, i) {
+          return React.createElement('li', { key: i }, item);
+        }));
+    }
+
+    return React.createElement('div', { className: 'today-grid' },
+
+      React.createElement('div', {
+        className: 'dash-banner ' + (todayPhase === 'unknown' ? '' : todayPhase)
+      },
+        React.createElement('div', { className: 'dash-banner-row' },
+          React.createElement('div', null,
+            React.createElement('div', { className: 'dash-label' }, 'Current Phase'),
+            React.createElement('div', { className: 'dash-phase' },
+              info.emoji + ' ' + info.label)),
+          dayInCycle ? React.createElement('div', { className: 'dash-day' },
+            React.createElement('div', { className: 'dash-day-num' },
+              'Day ' + dayInCycle),
+            React.createElement('div', { className: 'dash-day-total' },
+              'of ' + avgCycle)) : null),
+
+        React.createElement('div', { className: 'dash-progress' },
+          phaseOrder.map(function(p, i) {
+            var done = currentIdx > i;
+            var current = currentIdx === i;
+            var dot = done ? '✓' : (current ? '●' : '○');
+            var cls = 'dash-step';
+            if (done) cls += ' done';
+            if (current) cls += ' current';
+            return React.createElement('div', { key: p, className: cls, title: p },
+              React.createElement('div', { className: 'dash-step-dot' }, dot),
+              React.createElement('div', { className: 'dash-step-label' },
+                p.charAt(0).toUpperCase() + p.slice(1)));
+          }))),
+
+      React.createElement('div', { className: 'card' },
+        React.createElement('div', { className: 'sub' }, 'Upcoming'),
+        React.createElement('div', { className: 'value' },
+          predictions.length > 0
+            ? 'Next period: ' + formatDate(predictions[0].start)
+            : 'Log a period to see predictions'),
+        React.createElement('div', {
+          style: { fontSize: 12, color: 'var(--text-light)', marginTop: 4 }
+        }, 'Based on ' + cycles + ' cycle' + (cycles === 1 ? '' : 's') +
+           ' · ' + confidence + '% confidence')),
+
+      React.createElement('div', { className: 'card' },
+        React.createElement('div', { className: 'sub' }, 'Your averages'),
+        React.createElement('div', { style: { display: 'flex', gap: 24, marginTop: 8 } },
+          React.createElement('div', null,
+            React.createElement('div', { style: { fontSize: 22, fontWeight: 700 } }, avgCycle),
+            React.createElement('div', { style: { fontSize: 11, color: 'var(--text-light)' } },
+              'day cycle')),
+          React.createElement('div', null,
+            React.createElement('div', { style: { fontSize: 22, fontWeight: 700 } }, avgDur),
+            React.createElement('div', { style: { fontSize: 11, color: 'var(--text-light)' } },
+              'day period')),
+          predictions.length > 0 ? (function() {
+            var daysUntil = daysBetween(predictions[0].start, today);
+            return React.createElement('div', null,
+              React.createElement('div', {
+                style: { fontSize: 22, fontWeight: 700,
+                  color: daysUntil <= 3 ? '#d94b4b' : 'var(--text)' }
+              }, daysUntil < 0 ? '—' : daysUntil),
+              React.createElement('div', { style: { fontSize: 11, color: 'var(--text-light)' } },
+                daysUntil === 1 ? 'day until period' : 'days until period'));
+          })() : null)),
+
+      React.createElement('div', { className: 'dash-detail ' + info.color },
+        React.createElement('div', { className: 'dash-block' },
+          React.createElement('div', { className: 'dash-block-title' }, '🔄 Typical changes'),
+          React.createElement('div', { className: 'dash-block-body' }, info.typicalChanges)),
+        info.symptoms.length > 0 ?
+          React.createElement('div', { className: 'dash-block' },
+            React.createElement('div', { className: 'dash-block-title' }, '💭 Possible symptoms'),
+            renderList(info.symptoms)) : null,
+        React.createElement('div', { className: 'dash-block' },
+          React.createElement('div', { className: 'dash-block-title' }, '🌿 Self-care suggestions'),
+          renderList(info.selfCare))));
+  }
+
+  // ═══ HEALTH ═══
+  function HealthPage(props) {
+    var dataState = useState(null);
+    var data = dataState[0], setData = dataState[1];
+    var flowState = useState('');
+    var flow = flowState[0], setFlow = flowState[1];
+    var painState = useState('');
+    var pain = painState[0], setPain = painState[1];
+    var durState = useState('');
+    var duration = durState[0], setDuration = durState[1];
+    var cycState = useState('');
+    var cycle = cycState[0], setCycle = cycState[1];
+    var symState = useState('');
+    var symptoms = symState[0], setSymptoms = symState[1];
+    var savingState = useState(false);
+    var saving = savingState[0], setSaving = savingState[1];
+    var onPeriodState = useState(false);
+    var onPeriod = onPeriodState[0], setOnPeriod = onPeriodState[1];
+
+    function checkPeriod() {
+      api('/' + props.userId + '/periods')
+        .then(function(d) {
+          var days = d.periodDays || [];
+          setOnPeriod(days.indexOf(getToday()) >= 0);
+        })
+        .catch(function() { setOnPeriod(false); });
+    }
+
+    function reload() {
+      api('/' + props.userId + '/health-check')
+        .then(function(d) {
+          setData(d);
+          if (d.latestLog) {
+            setFlow(d.latestLog.flow || '');
+            setPain(d.latestLog.pain || '');
+            setDuration(d.latestLog.periodDuration
+              ? String(d.latestLog.periodDuration) : '');
+            setCycle(d.latestLog.cycleLength
+              ? String(d.latestLog.cycleLength) : '');
+            setSymptoms(d.latestLog.symptoms || '');
+          }
+        })
+        .catch(function() { setData({ messages: [] }); });
+      checkPeriod();
+    }
+
+    useEffect(function() { reload(); }, [props.userId]);
+
+    function save() {
+      setSaving(true);
+      api('/' + props.userId + '/health-check', {
+        method: 'POST',
+        body: JSON.stringify({
+          date: getToday(),
+          flow: onPeriod ? flow : null,
+          pain: pain,
+          periodDuration: (onPeriod && duration) ? parseInt(duration) : null,
+          cycleLength: (onPeriod && cycle) ? parseInt(cycle) : null,
+          symptoms: symptoms
+        })
+      }).then(function() {
+        alert('✅ Saved');
+        reload();
+      }).catch(function(e) { alert('Error: ' + e.message); })
+        .then(function() { setSaving(false); });
+    }
+
+    var flowOptions = ['Light','Medium','Heavy'];
+    var painOptions = ['None','Mild','Moderate','Severe'];
+
+    function renderPick(label, options, value, setValue) {
+      return React.createElement('div', { className: 'input-group' },
+        React.createElement('label', null, label),
+        React.createElement('div', { className: 'radio-group' },
+          options.map(function(o) {
+            return React.createElement('label', {
+              key: o, className: value === o ? 'selected' : ''
+            },
+              React.createElement('input', {
+                type: 'radio', checked: value === o,
+                onChange: function() { setValue(o); }
+              }), o);
+          })));
+    }
+
+    if (!data) return React.createElement('div', { style: { padding: 20 } }, 'Loading...');
+
+    var periodBanner = onPeriod
+      ? React.createElement('div', {
+          style: { background: '#fdeaea', border: '1px solid #f5a0a0',
+            borderRadius: 12, padding: '10px 14px', marginBottom: 14,
+            fontSize: 13, color: '#7a2626', display: 'flex',
+            alignItems: 'center', gap: 8 }
+        },
+          React.createElement('span', { style: { fontSize: 16 } }, '🩸'),
+          React.createElement('div', null,
+            React.createElement('div', { style: { fontWeight: 600 } }, 'You\'re on your period today'),
+            React.createElement('div', { style: { fontSize: 12, color: '#a06060', marginTop: 2 } },
+              'Log your flow and how you\'re feeling')))
+      : React.createElement('div', {
+          style: { background: '#e8f5e9', border: '1px solid #b9e0b9',
+            borderRadius: 12, padding: '10px 14px', marginBottom: 14,
+            fontSize: 13, color: '#2e6e2e', display: 'flex',
+            alignItems: 'center', gap: 8 }
+        },
+          React.createElement('span', { style: { fontSize: 16 } }, '🌿'),
+          React.createElement('div', null,
+            React.createElement('div', { style: { fontWeight: 600 } }, 'Not on your period today'),
+            React.createElement('div', { style: { fontSize: 12, color: '#4a8a4a', marginTop: 2 } },
+              'Flow logging is hidden — you can still note pain and symptoms')));
+
+    var formFields = [];
+    if (onPeriod) formFields.push(renderPick('Flow today', flowOptions, flow, setFlow));
+    formFields.push(renderPick('Pain level', painOptions, pain, setPain));
+    if (onPeriod) {
+      formFields.push(
+        React.createElement('div', { key: 'dur', className: 'input-group' },
+          React.createElement('label', null, 'Period duration so far (days)'),
+          React.createElement('input', {
+            type: 'number', value: duration, placeholder: 'e.g. 5',
+            min: 1, max: 15,
+            onChange: function(e) { setDuration(e.target.value); }
+          })));
+      formFields.push(
+        React.createElement('div', { key: 'cyc', className: 'input-group' },
+          React.createElement('label', null, 'Expected cycle length (days)'),
+          React.createElement('input', {
+            type: 'number', value: cycle, placeholder: 'e.g. 28',
+            min: 18, max: 45,
+            onChange: function(e) { setCycle(e.target.value); }
+          })));
+    }
+    formFields.push(
+      React.createElement('div', { key: 'sym', className: 'input-group' },
+        React.createElement('label', null,
+          onPeriod ? 'Other symptoms (optional)' : 'Any symptoms today? (optional)'),
+        React.createElement('input', {
+          type: 'text', value: symptoms,
+          placeholder: onPeriod ? 'e.g. cramps, headache' : 'e.g. bloating, mood swings',
+          onChange: function(e) { setSymptoms(e.target.value); }
+        })));
+
+    return React.createElement('div', { className: 'health-grid' },
+      React.createElement('div', { className: 'health-summary' },
+        React.createElement('h2', null, '🩺 Cycle Health Check'),
+        React.createElement('div', { className: 'sub' },
+          'Compare your recent cycles with your usual pattern.'),
+        periodBanner),
+
+      React.createElement('div', {
+        style: { background: 'var(--card-bg)', borderRadius: 14, padding: 16 }
+      },
+        React.createElement('div', {
+          style: { fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.04em',
+            color: 'var(--text-light)', fontWeight: 600, marginBottom: 10 }
+        }, '📊 Your cycle check'),
+
+        data.messages && data.messages.length > 0 ?
+          data.messages.map(function(msg, i) {
+            var bg, color, icon;
+            if (msg.type === 'warn') { bg = '#fff3cd'; color = '#7a5a00'; icon = '⚠️'; }
+            else if (msg.type === 'ok') { bg = '#e8f5e9'; color = '#2e6e2e'; icon = '✅'; }
+            else { bg = '#e3f2fd'; color = '#0d47a1'; icon = '💡'; }
+            return React.createElement('div', {
+              key: i,
+              style: { background: bg, color: color, padding: '10px 14px',
+                borderRadius: 10, marginBottom: 8, fontSize: 13, lineHeight: 1.5 }
+            },
+              React.createElement('div', { style: { fontWeight: 600, marginBottom: 2 } },
+                icon + ' ' + msg.title),
+              React.createElement('div', null, msg.text));
+          }) :
+          React.createElement('div', { style: { fontSize: 13, color: 'var(--text-muted)' } },
+            'No data yet — log some cycles to see insights.'),
+
+        data.avgPeriodDuration > 0 ?
+        React.createElement('div', { style: { display: 'flex', gap: 10, marginTop: 12 } },
+          React.createElement('div', {
+            style: { flex: 1, background: 'var(--surface)', padding: 10,
+              borderRadius: 10, textAlign: 'center' }
+          },
+            React.createElement('div', { style: { fontSize: 18, fontWeight: 700 } },
+              data.avgPeriodDuration.toFixed(1)),
+            React.createElement('div', { style: { fontSize: 11, color: 'var(--text-light)' } },
+              'Avg period')),
+          React.createElement('div', {
+            style: { flex: 1, background: 'var(--surface)', padding: 10,
+              borderRadius: 10, textAlign: 'center' }
+          },
+            React.createElement('div', { style: { fontSize: 18, fontWeight: 700 } },
+              data.avgCycleLength.toFixed(1)),
+            React.createElement('div', { style: { fontSize: 11, color: 'var(--text-light)' } },
+              'Avg cycle')),
+          React.createElement('div', {
+            style: { flex: 1, background: 'var(--surface)', padding: 10,
+              borderRadius: 10, textAlign: 'center' }
+          },
+            React.createElement('div', { style: { fontSize: 18, fontWeight: 700 } },
+              data.currentDuration || '—'),
+            React.createElement('div', { style: { fontSize: 11, color: 'var(--text-light)' } },
+              'Latest period'))) : null),
+
+      React.createElement('div', {
+        style: { background: 'var(--surface)', border: '1.5px solid var(--border)',
+          borderRadius: 14, padding: 16 }
+      },
+        React.createElement('div', {
+          style: { fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.04em',
+            color: 'var(--text-light)', fontWeight: 600, marginBottom: 12 }
+        }, onPeriod ? '📝 Log today' : '📝 Log today (period-free day)'),
+        formFields,
+        React.createElement('button', {
+          className: 'btn btn-block', onClick: save, disabled: saving,
+          style: { marginTop: 8 }
+        }, saving ? 'Saving...' : '💾 Save check-in')));
+  }
+
+  // ═══ INSIGHTS ═══
+  function InsightsPage(props) {
+    var dataState = useState(null);
+    var data = dataState[0], setData = dataState[1];
+
+    useEffect(function() {
+      api('/' + props.userId + '/insights').then(setData).catch(function(){});
+    }, [props.userId]);
+
+    if (!data) return React.createElement('div', { style: { padding: 20 } }, 'Loading...');
+
+    return React.createElement('div', null,
+      React.createElement('h2', null, 'Insights'),
+      React.createElement('div', { className: 'insights-grid' },
+        ['Periods', 'Avg cycle', 'Range'].map(function(lbl, i) {
+          var val = i === 0 ? data.totalPeriods :
+            i === 1 ? (data.avgCycleLength || 0).toFixed(1) :
+            (data.minCycle || 0) + '-' + (data.maxCycle || 0);
+          return React.createElement('div', {
+            key: lbl,
+            style: { flex: 1, background: 'var(--card-bg)',
+              padding: 16, borderRadius: 14, textAlign: 'center' }
+          },
+            React.createElement('div', { style: { fontSize: 22, fontWeight: 700 } }, val),
+            React.createElement('div', { style: { fontSize: 12, color: 'var(--text-light)', marginTop: 4 } }, lbl));
+        })));
+  }
+
+  // ═══ SETTINGS ═══
+  function SettingsPage(props) {
+    var dataState = useState(null);
+    var data = dataState[0], setData = dataState[1];
+    var cycleInput = useState('');
+    var cycleVal = cycleInput[0], setCycleVal = cycleInput[1];
+    var periodInput = useState('');
+    var periodVal = periodInput[0], setPeriodVal = periodInput[1];
+    var savedState = useState(false);
+    var saved = savedState[0], setSaved = savedState[1];
+    var themeState = useState(document.body.getAttribute('data-theme') === 'dark' ? 'dark' : 'light');
+    var theme = themeState[0], setTheme = themeState[1];
+    var exportState = useState(false);
+    var exporting = exportState[0], setExporting = exportState[1];
+
+    useEffect(function() {
+      api('/' + props.userId + '/periods')
+        .then(function(d) {
+          setData(d);
+          setCycleVal(String(d.cycleLength || 28));
+          setPeriodVal(String(d.periodLength || 5));
+        })
+        .catch(function() {});
+    }, [props.userId]);
+
+    function toggleTheme() {
+      var next = theme === 'dark' ? 'light' : 'dark';
+      setTheme(next);
+      applyTheme(next);
+      localStorage.setItem('ft_theme', next);
+    }
+
+    function saveSettings() {
+      var cLen = parseInt(cycleVal) || 28;
+      var pLen = parseInt(periodVal) || 5;
+      if (cLen < 20 || cLen > 45) { alert('Cycle length must be 20-45 days'); return; }
+      if (pLen < 1 || pLen > 15) { alert('Period length must be 1-15 days'); return; }
+      api('/' + props.userId + '/settings', {
+        method: 'PUT',
+        body: JSON.stringify({ cycleLength: cLen, periodLength: pLen })
+      }).then(function() {
+        setSaved(true);
+        setTimeout(function() { setSaved(false); }, 2000);
+      }).catch(function(e) { alert('Error: ' + e.message); });
+    }
+
+    function downloadCSV() {
+      setExporting(true);
+      Promise.all([
+        api('/' + props.userId + '/periods'),
+        api('/' + props.userId + '/emotions'),
+        api('/' + props.userId + '/health-check')
+      ]).then(function(results) {
+        var periodData = results[0];
+        var emotionData = results[1];
+        var healthData = results[2];
+
+        var csv = '';
+        csv += '# FlowTrack Data Export\n';
+        csv += '# Generated: ' + new Date().toLocaleString() + '\n\n';
+
+        csv += 'PERIOD DAYS\n';
+        csv += 'date\n';
+        (periodData.periodDays || []).forEach(function(d) {
+          csv += d + '\n';
+        });
+        csv += '\n';
+
+        csv += 'AVERAGES\n';
+        csv += 'metric,value\n';
+        csv += 'Average cycle length,' + (periodData.averageCycleLength || '') + '\n';
+        csv += 'Average period duration,' + (periodData.averagePeriodDuration || '') + '\n';
+        csv += 'Total cycles logged,' + (periodData.cycleCount || 0) + '\n';
+        csv += 'Confidence,' + (periodData.confidence || 0) + '%\n';
+        csv += '\n';
+
+        csv += 'PREDICTED PERIODS\n';
+        csv += 'start_date,end_date\n';
+        (periodData.predictions || []).forEach(function(p) {
+          csv += p.start + ',' + p.end + '\n';
+        });
+        csv += '\n';
+
+        csv += 'EMOTIONS\n';
+        csv += 'date,emotion\n';
+        (emotionData || []).forEach(function(e) {
+          csv += e.date + ',' + e.emotion + '\n';
+        });
+        csv += '\n';
+
+        if (healthData && healthData.latestLog) {
+          csv += 'LATEST HEALTH CHECK\n';
+          csv += 'date,flow,pain,period_duration,cycle_length,symptoms\n';
+          var l = healthData.latestLog;
+          csv += [
+            l.date || '',
+            l.flow || '',
+            l.pain || '',
+            l.periodDuration || '',
+            l.cycleLength || '',
+            (l.symptoms || '').replace(/,/g, ';')
+          ].join(',') + '\n';
+        }
+
+        var blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        var url = URL.createObjectURL(blob);
+        var a = document.createElement('a');
+        a.href = url;
+        a.download = 'flowtrack_export_' + getToday() + '.csv';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      }).catch(function(e) {
+        alert('Export failed: ' + e.message);
+      }).then(function() { setExporting(false); });
+    }
+
+    function clearLocalData() {
+      if (!window.confirm('Log out? Your saved data stays on the server.')) return;
+      localStorage.removeItem('ft_userId');
+      localStorage.removeItem('ft_username');
+      window.location.reload();
+    }
+
+    return React.createElement('div', null,
+      React.createElement('h2', null, '⚙️ Settings'),
+      React.createElement('div', { className: 'sub' },
+        'Personalise your cycle tracking'),
+
+      React.createElement('div', { className: 'settings-grid' },
+        React.createElement('div', {
+          style: { background: 'var(--card-bg)', borderRadius: 14, padding: 16 }
+        },
+          React.createElement('div', {
+            style: { fontSize: 12, fontWeight: 700, textTransform: 'uppercase',
+              letterSpacing: '0.04em', color: 'var(--text-muted)', marginBottom: 12 }
+          }, '🎯 Cycle parameters'),
+
+          React.createElement('div', { className: 'input-group' },
+            React.createElement('label', null, 'Cycle length (days)'),
+            React.createElement('input', {
+              type: 'number', min: 20, max: 45,
+              value: cycleVal,
+              onChange: function(e) { setCycleVal(e.target.value); }
+            }),
+            React.createElement('div', {
+              style: { fontSize: 12, color: 'var(--text-light)', marginTop: 4 }
+            }, 'Days from start of one period to start of the next')),
+
+          React.createElement('div', { className: 'input-group' },
+            React.createElement('label', null, 'Period length (days)'),
+            React.createElement('input', {
+              type: 'number', min: 1, max: 15,
+              value: periodVal,
+              onChange: function(e) { setPeriodVal(e.target.value); }
+            }),
+            React.createElement('div', {
+              style: { fontSize: 12, color: 'var(--text-light)', marginTop: 4 }
+            }, 'Typical number of bleeding days')),
+
+          React.createElement('button', {
+            className: 'btn btn-block',
+            onClick: saveSettings,
+            style: { marginTop: 8 }
+          }, saved ? '✅ Saved!' : '💾 Save settings')),
+
+        React.createElement('div', {
+          style: { background: 'var(--card-bg)', borderRadius: 14, padding: 16 }
+        },
+          React.createElement('div', {
+            style: { fontSize: 12, fontWeight: 700, textTransform: 'uppercase',
+              letterSpacing: '0.04em', color: 'var(--text-muted)', marginBottom: 6 }
+          }, '🎨 Appearance'),
+
+          React.createElement('div', { className: 'settings-row' },
+            React.createElement('div', null,
+              React.createElement('div', { className: 'label' }, 'Dark mode'),
+              React.createElement('div', { className: 'desc' }, 'Easier on the eyes at night')),
+            React.createElement('label', { className: 'toggle' },
+              React.createElement('input', {
+                type: 'checkbox',
+                checked: theme === 'dark',
+                onChange: toggleTheme
+              }),
+              React.createElement('span', { className: 'slider' })))),
+
+        React.createElement('div', {
+          style: { background: 'var(--card-bg)', borderRadius: 14, padding: 16 }
+        },
+          React.createElement('div', {
+            style: { fontSize: 12, fontWeight: 700, textTransform: 'uppercase',
+              letterSpacing: '0.04em', color: 'var(--text-muted)', marginBottom: 12 }
+          }, '📁 Your data'),
+
+          React.createElement('button', {
+            className: 'btn btn-block',
+            onClick: downloadCSV,
+            disabled: exporting,
+            style: { marginBottom: 10 }
+          }, exporting ? 'Preparing...' : '⬇️ Export data as CSV'),
+
+          React.createElement('div', {
+            style: { fontSize: 12, color: 'var(--text-light)', marginBottom: 14, lineHeight: 1.5 }
+          }, 'Downloads a CSV with all your period days, moods, health check-ins, ' +
+             'and predictions.'),
+
+          React.createElement('button', {
+            className: 'btn btn-outline btn-block',
+            onClick: clearLocalData
+          }, '🚪 Log out')),
+
+        React.createElement('div', {
+          style: { background: 'var(--card-bg)', borderRadius: 14, padding: 16 }
+        },
+          React.createElement('div', {
+            style: { fontSize: 12, fontWeight: 700, textTransform: 'uppercase',
+              letterSpacing: '0.04em', color: 'var(--text-muted)', marginBottom: 8 }
+          }, 'ℹ️ About FlowTrack'),
+
+          React.createElement('div', {
+            style: { fontSize: 13, color: 'var(--text)', lineHeight: 1.6 }
+          },
+            'FlowTrack helps you notice your cycle\'s rhythm — periods, phases, moods, ' +
+            'and how they connect. All predictions are estimates based on your logged data.'))));
+  }
+
+  // ═══ APP ═══
+  function App() {
+    var uState = useState(null);
+    var userId = uState[0], setUserId = uState[1];
+    var nState = useState(null);
+    var username = nState[0], setUsername = nState[1];
+    var tState = useState('today');
+    var tab = tState[0], setTab = tState[1];
+    var obState = useState(false);
+    var onboarded = obState[0], setOnboarded = obState[1];
+    var cState = useState(true);
+    var checking = cState[0], setChecking = cState[1];
+
+    useEffect(function() {
+      var stored = localStorage.getItem('ft_theme') || 'light';
+      applyTheme(stored);
+    }, []);
+
+    useEffect(function() {
+      var id = localStorage.getItem('ft_userId');
+      var name = localStorage.getItem('ft_username');
+      if (!id) { setChecking(false); return; }
+      setUserId(parseInt(id));
+      setUsername(name || 'user');
+      api('/' + id + '/profile')
+        .then(function(p) {
+          setOnboarded(p.onboarded === true);
+          setChecking(false);
+        })
+        .catch(function() {
+          localStorage.removeItem('ft_userId');
+          localStorage.removeItem('ft_username');
+          setUserId(null); setUsername(null); setChecking(false);
+        });
+    }, []);
+
+    function handleLogin(id, name, isNew) {
+      setUserId(id);
+      setUsername(name);
+      if (isNew) setOnboarded(false);
+      else api('/' + id + '/profile')
+        .then(function(p) { setOnboarded(p.onboarded === true); })
+        .catch(function() { setOnboarded(false); });
+    }
+
+    function logout() {
+      if (!window.confirm('Log out?')) return;
+      localStorage.removeItem('ft_userId');
+      localStorage.removeItem('ft_username');
+      setUserId(null); setUsername(null); setOnboarded(false); setTab('today');
+    }
+
+    if (checking) return React.createElement('div',
+      { style: { textAlign: 'center', padding: 40 } }, 'Loading...');
+
+    if (!userId) return React.createElement(LoginPage, { onLogin: handleLogin });
+    if (!onboarded) return React.createElement(Onboarding,
+      { userId: userId, onComplete: function() { setOnboarded(true); } });
+
+    var page;
+    if (tab === 'calendar') page = React.createElement(CalendarPage, { userId: userId });
+    else if (tab === 'emotions') page = React.createElement(EmotionBoard, { userId: userId });
+    else if (tab === 'health') page = React.createElement(HealthPage, { userId: userId });
+    else if (tab === 'insights') page = React.createElement(InsightsPage, { userId: userId });
+    else if (tab === 'settings') page = React.createElement(SettingsPage, { userId: userId });
+    else page = React.createElement(TodayPage, { userId: userId });
+
+    return React.createElement('div', { className: 'app-root' },
+      React.createElement('aside', { className: 'sidebar' },
+        React.createElement('div', { className: 'sidebar-logo' },
+          React.createElement('h1', null, '🌿 FlowTrack')),
+        React.createElement('nav', { className: 'sidebar-nav' },
+          NAV_ITEMS.map(function(item) {
+            return React.createElement('button', {
+              key: item.id,
+              className: tab === item.id ? 'active' : '',
+              onClick: function() { setTab(item.id); }
+            }, item.label);
+          })),
+        React.createElement('div', { className: 'sidebar-footer' },
+          React.createElement('div', { className: 'user-name' },
+            username || 'user'),
+          React.createElement('button', {
+            className: 'logout-btn',
+            onClick: logout
+          }, 'Log out'))),
+
+      React.createElement('main', { className: 'main-column' },
+        React.createElement('div', { className: 'mobile-header' },
+          React.createElement('h1', null, '🌿 FlowTrack'),
+          React.createElement('span', {
+            className: 'mobile-user',
+            onClick: logout
+          }, username || 'user')),
+
+        React.createElement('nav', { className: 'mobile-nav' },
+          NAV_ITEMS.map(function(item) {
+            return React.createElement('button', {
+              key: item.id,
+              className: tab === item.id ? 'active' : '',
+              onClick: function() { setTab(item.id); }
+            }, item.label);
+          })),
+
+        page));
+  }
+
+  try {
+    ReactDOM.createRoot(document.getElementById('root'))
+      .render(React.createElement(App, null));
+  } catch (e) {
+    document.getElementById('root').innerHTML =
+      '<div class="error-box"><b>RENDER ERROR:</b><br>' +
+      e.message + '<br><pre>' + e.stack + '</pre></div>';
+  }
+}
+</script>
+</body>
+</html>
