@@ -25,4 +25,4 @@ FlowTrack is a menstrual health awareness application that helps users track the
 ## 🌍 Objective
 To promote menstrual health awareness and encourage informed self-care through cycle tracking and educational resources.
 
-**Disclaimer:** Period predictions are estimates and are not a substitute for professional medical advice.
+demo link: http://localhost:8080/FlowTrack/index.html
